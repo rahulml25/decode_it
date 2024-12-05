@@ -378,7 +378,7 @@ const PointRow = ({
   }
 
   async function onUpdate() {
-    if (!pointRef.current) return;
+    if (!pointRef.current || Number(pointRef.current?.value) === count) return;
 
     await updatePoint(Number(pointRef.current.value));
     setEditing(false);

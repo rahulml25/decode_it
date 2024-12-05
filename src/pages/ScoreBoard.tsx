@@ -73,56 +73,46 @@ export default function ScoreBoard() {
   }, []);
 
   return (
-    <div className="bg-inherit px-12 lg:px-60">
-      <header className="my-14 text-center">
-        <div className="absolute left-6 top-4 flex items-center space-x-1">
-          <img src="/logo.ico" className="mt-0.5 h-6 w-6" />
-          <h3 className="text-xl font-semibold">IIE TECH CLUB</h3>
+    <div className="bg-inherit px-14 lg:px-24">
+      <header className="my-12 text-center">
+        <div className="absolute left-5 top-5 flex items-center space-x-1">
+          <img src="/logo.ico" className="mt-0.5 h-8 w-8" />
+          <h3 className="text-2xl font-bold">IIE TECH CLUB</h3>
         </div>
 
         <button
-          className="absolute right-6 top-4 text-xl font-semibold"
+          className="absolute right-6 top-6 text-xl font-semibold"
           onClick={toggleFullscreen}
           title="Toggle Fullscreen"
         >
           <GoScreenFull />
         </button>
 
-        <h1 className="text-4xl font-bold">"DECODE IT"</h1>
-        <span className="font-semibold text-yellow-500">Let's decode it!</span>
+        <h1 className="mb-1 text-5xl font-bold">"DECODE IT"</h1>
+        <span className="text-xl font-semibold tracking-widest text-yellow-500">
+          Let's decode it!
+        </span>
       </header>
 
-      <main className="my-14">
-        <div className="overflow-x-auto rounded-lg border border-gray-200">
-          <table className="min-w-full divide-y-2 divide-gray-200 bg-white text-sm">
-            <thead className="text-left">
+      <main className="my-12">
+        <div className="relative max-h-[545px] overflow-y-auto rounded-lg border border-gray-200">
+          <table className="min-w-full divide-y-2 divide-gray-200 bg-white text-2xl font-medium">
+            <thead className="sticky top-0 bg-white text-left shadow-md">
               <tr>
-                <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
+                <th className="whitespace-nowrap px-4 py-2 font-bold text-gray-900">
                   Teams
                 </th>
 
                 {data?.rounds.map((name: string, idx: number) => (
                   <th
                     key={`head_${idx}`}
-                    className="whitespace-nowrap px-4 py-2 font-medium text-gray-900"
+                    className="whitespace-nowrap px-4 py-2 font-bold text-gray-900"
                   >
                     {name}
                   </th>
                 ))}
 
-                {/* <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                  Round 2
-                </th>
-                <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                  Round 3
-                </th>
-                <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                  Round 4
-                </th>
-                <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                  Round 5
-                </th> */}
-                <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
+                <th className="whitespace-nowrap px-4 py-2 font-bold text-gray-900">
                   Total
                 </th>
               </tr>
@@ -137,7 +127,7 @@ export default function ScoreBoard() {
                     idx: number,
                   ) => (
                     <tr key={`team_${idx}`}>
-                      <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
+                      <td className="whitespace-nowrap px-4 py-2 font-bold text-gray-900">
                         {name}
                       </td>
 
@@ -190,10 +180,10 @@ export default function ScoreBoard() {
 
         {showingMessage !== null && (
           <div
-            className={`absolute bottom-10 left-1/2 -translate-x-1/2 rounded-md border ${showingMessage.positive ? "border-green-300" : "border-red-300"} ${showingMessage.positive ? "bg-green-100" : "bg-red-100"} px-3 py-1`}
+            className={`absolute bottom-16 left-1/2 w-fit -translate-x-1/2 rounded-lg border shadow-lg ${showingMessage.positive ? "border-green-300" : "border-red-300"} ${showingMessage.positive ? "bg-green-100" : "bg-red-100"} px-4 py-1.5`}
             ref={messageRef}
           >
-            <span>
+            <span className="line-clamp-1 text-2xl">
               Team <span className="font-medium">{showingMessage.team}</span>{" "}
               got{" "}
               <span
