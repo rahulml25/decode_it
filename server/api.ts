@@ -32,9 +32,8 @@ router.get("/scores", async (_, res) => {
           select: { points: { select: { count: true } }, roundId: true },
         },
       },
-      where: { hidden: false },
     })
-  ).map(({ name, scores }) => {
+  ).map(({ scores, ...team }) => {
     const formattedScores = new Array<number>(rounds.length).fill(0);
 
     for (const score of scores) {
@@ -44,10 +43,7 @@ router.get("/scores", async (_, res) => {
       );
     }
 
-    return {
-      name,
-      scores: formattedScores,
-    };
+    return { ...team, scores: formattedScores };
   });
 
   const data = { rounds, teams };
@@ -94,7 +90,7 @@ router.post("/add_point", async (req, res) => {
     select: { count: true },
   }))!.reduce((a, b) => a + b.count, 0);
 
-  socketIO.emit("score_update", { roundId, teamId, points });
+  socketIO.emit("score_update", { roundId, teamId, points, count });
 
   points = await getPoints();
   res.json(points);
@@ -116,10 +112,50 @@ router.put("/update_point", async (req, res) => {
     select: { count: true },
   }))!.reduce((a, b) => a + b.count, 0);
 
-  socketIO.emit("score_update", { roundId, teamId, points });
+  socketIO.emit("score_update", { roundId, teamId, points, count });
 
   points = await getPoints();
   res.json(points);
+});
+
+router.put("/update_teams", async (req, res) => {
+  const { teams } = req.body;
+  const updatedTeams: any[] = [];
+
+  for (const team of teams) {
+    const updatedTeam = await prisma.team.update({
+      where: { id: team.id },
+      data: { hidden: team.hidden },
+      select: { id: true, name: true, hidden: true },
+    });
+    updatedTeams.push(updatedTeam);
+  }
+
+  const roundsCount = await prisma.round.count();
+  const formattedTeams = (
+    await prisma.team.findMany({
+      include: {
+        scores: {
+          select: { points: { select: { count: true } }, roundId: true },
+        },
+      },
+    })
+  ).map(({ scores, ...team }) => {
+    const formattedScores = new Array<number>(roundsCount).fill(0);
+
+    for (const score of scores) {
+      formattedScores[score.roundId - 1] = score.points.reduce(
+        (a, b) => a + b.count,
+        0,
+      );
+    }
+
+    return { ...team, scores: formattedScores };
+  });
+
+  socketIO.emit("teams_update", { teams: formattedTeams });
+
+  res.json(updatedTeams);
 });
 
 router.delete("/delete_point", async (req, res) => {
