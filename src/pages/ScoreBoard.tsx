@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { io as socketIO } from "socket.io-client";
 import { GoScreenFull } from "react-icons/go";
 
-const socket = socketIO();
+const socket = socketIO({ autoConnect: false });
 
 export default function ScoreBoard() {
   const [_, setIsFullscreen] = useState(false);
@@ -69,7 +69,11 @@ export default function ScoreBoard() {
   }
 
   useEffect(() => {
+    socket.connect();
     fetchData();
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   return (
