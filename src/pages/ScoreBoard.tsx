@@ -101,25 +101,39 @@ export default function ScoreBoard() {
         </span>
       </header>
 
-      <main className="">
+      <main>
         <div className="relative max-h-[490px] overflow-y-auto rounded-lg border border-gray-200 scrollbar-hide">
           <table className="min-w-full divide-y-2 divide-gray-200 bg-white text-2xl font-medium">
             <thead className="sticky top-0 z-10 bg-white text-left shadow-md">
               <tr>
-                <th className="whitespace-nowrap px-4 py-2 font-bold text-gray-900">
+                <th className="max-w-[125px] whitespace-nowrap px-4 py-2 font-bold text-gray-900">
                   Teams
                 </th>
 
-                {data?.rounds.map((name: string, idx: number) => (
-                  <th
-                    key={`head_${idx}`}
-                    className="whitespace-nowrap px-4 py-2 font-bold text-gray-900"
-                  >
-                    {name}
-                  </th>
-                ))}
+                {data?.rounds.map((name: string, idx: number) =>
+                  name.length > 15 ? (
+                    <th
+                      key={`head_${idx}`}
+                      className="max-w-[125px] whitespace-nowrap px-4 py-2 text-center font-bold text-gray-900"
+                      dangerouslySetInnerHTML={{
+                        __html: `
+                          <marquee direction="left" loop>
+                          ${name}
+                          </marquee>
+                          `,
+                      }}
+                    ></th>
+                  ) : (
+                    <th
+                      key={`head_${idx}`}
+                      className="max-w-[125px] whitespace-nowrap px-4 py-2 text-center font-bold text-gray-900"
+                    >
+                      {name}
+                    </th>
+                  ),
+                )}
 
-                <th className="whitespace-nowrap px-4 py-2 font-bold text-gray-900">
+                <th className="max-w-[125px] whitespace-nowrap px-4 py-2 text-center font-bold text-gray-900">
                   Total
                 </th>
               </tr>
@@ -136,31 +150,31 @@ export default function ScoreBoard() {
                     <tr key={`team_${idx}`} className="bg-green-100/90">
                       {name.length > 6 ? (
                         <td
-                          className="-my-1.5 whitespace-nowrap px-4 font-bold text-gray-900"
+                          className="-my-1.5 max-w-[125px] whitespace-nowrap px-4 font-bold text-gray-900"
                           dangerouslySetInnerHTML={{
                             __html: `
-                        <marquee class="marq" direction="left" loop="">
+                        <marquee direction="left" loop>
                         ${name}
                         </marquee>
                         `,
                           }}
                         ></td>
                       ) : (
-                        <td className="-my-1.5 whitespace-nowrap px-4 font-bold text-gray-900">
+                        <td className="-my-1.5 max-w-[125px] whitespace-nowrap px-4 font-bold text-gray-900">
                           {name}
                         </td>
                       )}
 
                       {scores?.map((score: number, idx: number) => (
                         <td
-                          className="-my-1.5 whitespace-nowrap px-4 text-center text-gray-700"
+                          className="-my-1.5 max-w-[125px] whitespace-nowrap px-4 text-center text-gray-700"
                           key={`round_${idx}`}
                         >
                           {score}
                         </td>
                       ))}
 
-                      <td className="-my-1.5 whitespace-nowrap px-4 text-center text-gray-700">
+                      <td className="-my-1.5 max-w-[125px] whitespace-nowrap px-4 text-center text-gray-700">
                         {scores?.reduce((a: number, b: number) => a + b, 0)}
                       </td>
                     </tr>
@@ -177,31 +191,31 @@ export default function ScoreBoard() {
                     <tr key={`hidden_team_${idx}`} className="bg-red-200/90">
                       {name.length > 6 ? (
                         <td
-                          className="-my-1.5 whitespace-nowrap px-4 font-bold text-gray-900"
+                          className="-my-1.5 max-w-[125px] whitespace-nowrap px-4 font-bold text-gray-900"
                           dangerouslySetInnerHTML={{
                             __html: `
-                        <marquee class="marq" direction="left" loop="">
+                        <marquee direction="left" loop="">
                         ${name}
                         </marquee>
                         `,
                           }}
                         ></td>
                       ) : (
-                        <td className="-my-1.5 whitespace-nowrap px-4 font-bold text-gray-900">
+                        <td className="-my-1.5 max-w-[125px] whitespace-nowrap px-4 font-bold text-gray-900">
                           {name}
                         </td>
                       )}
 
                       {scores?.map((score: number, idx: number) => (
                         <td
-                          className="-my-1.5 whitespace-nowrap px-4 text-center text-gray-700"
+                          className="-my-1.5 max-w-[125px] whitespace-nowrap px-4 text-center text-gray-700"
                           key={`round_${idx}`}
                         >
                           {score}
                         </td>
                       ))}
 
-                      <td className="-my-1.5 whitespace-nowrap px-4 text-center text-gray-700">
+                      <td className="-my-1.5 max-w-[125px] whitespace-nowrap px-4 text-center text-gray-700">
                         {scores?.reduce((a: number, b: number) => a + b, 0)}
                       </td>
                     </tr>
