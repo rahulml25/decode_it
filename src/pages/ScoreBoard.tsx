@@ -139,7 +139,7 @@ export default function ScoreBoard() {
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-transparent">
+            <tbody className="divide-y divide-neutral-300">
               {data?.teams
                 .filter((team: any) => !team.hidden)
                 .map(
