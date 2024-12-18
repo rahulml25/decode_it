@@ -27,9 +27,15 @@ router.get("/scores", async (_, res) => {
 
   const teams = (
     await prisma.team.findMany({
-      include: {
+      select: {
+        id: true,
+        name: true,
+        hidden: true,
         scores: {
-          select: { points: { select: { count: true } }, roundId: true },
+          select: {
+            points: { select: { count: true } },
+            roundId: true,
+          },
         },
       },
     })
@@ -112,7 +118,7 @@ router.put("/update_point", async (req, res) => {
     select: { count: true },
   }))!.reduce((a, b) => a + b.count, 0);
 
-  socketIO.emit("score_update", { roundId, teamId, points, count });
+  socketIO.emit("score_update", { roundId, teamId, points, count, update: true });
 
   points = await getPoints();
   res.json(points);
