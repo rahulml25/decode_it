@@ -5,7 +5,7 @@ import { GoScreenFull } from "react-icons/go";
 const socket = socketIO({ autoConnect: false });
 
 export default function ScoreBoard() {
-  const [_, setIsFullscreen] = useState(false);
+  const setIsFullscreen = useRef(false);
   const [data, setData] = useState<any>(null);
 
   const messageRef = useRef<HTMLDivElement>(null);
@@ -17,15 +17,11 @@ export default function ScoreBoard() {
   } | null>(null);
 
   function toggleFullscreen() {
-    setIsFullscreen((isFullscreen) => {
-      if (isFullscreen === true) {
-        document.exitFullscreen();
-        return false;
-      } else {
-        document.documentElement.requestFullscreen();
-        return true;
-      }
-    });
+    if (setIsFullscreen.current) {
+      document.exitFullscreen();
+    } else {
+      document.documentElement.requestFullscreen();
+    }
   }
 
   async function fetchData() {
@@ -37,14 +33,18 @@ export default function ScoreBoard() {
 
     socket.on("score_update", (score_update) => {
       const temp = { ...data };
-      temp.teams[score_update.teamId - 1].scores[score_update.roundId - 1] =
+
+      const teamIdx = (temp.teams as any[]).findIndex(
+        (team) => team.id === score_update.teamId,
+      );
+      temp.teams[teamIdx].scores[score_update.roundId - 1] =
         score_update.points;
 
       if (Object.hasOwn(score_update, "count")) {
         showMessage(
-          temp.teams[score_update.teamId - 1].name,
+          temp.teams[teamIdx].name,
           score_update.count,
-          // true,
+          Object.hasOwn(score_update, "update") && score_update.update,
         );
       }
 
@@ -71,11 +71,28 @@ export default function ScoreBoard() {
     }, 4000);
   }
 
+  const totalScore = (teamScores: any[]) => {
+    return teamScores?.reduce((a: number, b: number) => a + b, 0);
+  };
+
   useEffect(() => {
     socket.connect();
     fetchData();
     return () => {
       socket.disconnect();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    function listener() {
+      setIsFullscreen.current = document.fullscreenElement === document.documentElement;
+    }
+
+    document.addEventListener("fullscreenchange", listener);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", listener);
     };
   }, []);
 
@@ -83,8 +100,8 @@ export default function ScoreBoard() {
     <div className="bg-inherit px-7 lg:px-24">
       <header className="mb-3 mt-3 text-center">
         <div className="absolute left-5 top-4 flex items-center space-x-1">
-          <img src="/logo.ico" className="mt-0.5 h-6 w-6" />
-          <h3 className="text-xl font-bold">IIE TECH CLUB</h3>
+          <img src="/logo.ico" className="mt-0.5 h-6 w-6"  alt="club logo"/>
+          <h3 className="text-lg font-bold md:text-xl">IIE TECH CLUB</h3>
         </div>
 
         <button
@@ -95,14 +112,14 @@ export default function ScoreBoard() {
           <GoScreenFull />
         </button>
 
-        <h1 className="text-5xl font-bold">"DECODE IT"</h1>
-        <span className="text-xl font-semibold tracking-widest text-red-500">
+        <h1 className="text-4xl font-bold md:text-5xl">"DECODE IT"</h1>
+        <span className="text-lg font-semibold tracking-widest text-red-500 md:text-xl">
           Let's decode it!
         </span>
       </header>
 
       <main>
-        <div className="relative max-h-[490px] overflow-y-auto rounded-lg border border-gray-200 scrollbar-hide">
+        <div className="relative max-h-[500px] overflow-y-auto rounded-lg border border-gray-200 scrollbar-hide">
           <table className="min-w-full divide-y-2 divide-gray-200 bg-white text-2xl font-medium">
             <thead className="sticky top-0 z-10 bg-white text-left shadow-md">
               <tr>
@@ -111,13 +128,13 @@ export default function ScoreBoard() {
                 </th>
 
                 {data?.rounds.map((name: string, idx: number) =>
-                  name.length > 15 ? (
+                  name.length > 6 ? (
                     <th
                       key={`head_${idx}`}
                       className="max-w-[125px] whitespace-nowrap px-4 py-2 text-center font-bold text-gray-900"
                       dangerouslySetInnerHTML={{
                         __html: `
-                          <marquee direction="left" loop>
+                          <marquee direction="left" loop scrollamount="4">
                           ${name}
                           </marquee>
                           `,
@@ -142,18 +159,27 @@ export default function ScoreBoard() {
             <tbody className="divide-y divide-neutral-300">
               {data?.teams
                 .filter((team: any) => !team.hidden)
+                .sort(
+                  (a: any, b: any) =>
+                    totalScore(b.scores) - totalScore(a.scores),
+                )
                 .map(
-                  (
-                    { name, scores }: { name: string; scores: number[] },
-                    idx: number,
-                  ) => (
-                    <tr key={`team_${idx}`} className="bg-green-100/90">
+                  ({
+                    id,
+                    name,
+                    scores,
+                  }: {
+                    id: number;
+                    name: string;
+                    scores: number[];
+                  }) => (
+                    <tr key={`team_${id}`} className="divide-x bg-green-100/90">
                       {name.length > 6 ? (
                         <td
                           className="-my-1.5 max-w-[125px] whitespace-nowrap px-4 font-bold text-gray-900"
                           dangerouslySetInnerHTML={{
                             __html: `
-                        <marquee direction="left" loop>
+                        <marquee direction="left" loop scrollamount="4">
                         ${name}
                         </marquee>
                         `,
@@ -182,19 +208,31 @@ export default function ScoreBoard() {
                 )}
 
               {data?.teams
+                .sort(
+                  (a: any, b: any) =>
+                    totalScore(b.scores) - totalScore(a.scores),
+                )
                 .filter((team: any) => team.hidden)
                 .map(
-                  (
-                    { name, scores }: { name: string; scores: number[] },
-                    idx: number,
-                  ) => (
-                    <tr key={`hidden_team_${idx}`} className="bg-red-200/90">
+                  ({
+                    id,
+                    name,
+                    scores,
+                  }: {
+                    id: number;
+                    name: string;
+                    scores: number[];
+                  }) => (
+                    <tr
+                      key={`hidden_team_${id}`}
+                      className="divide-x bg-red-200/90"
+                    >
                       {name.length > 6 ? (
                         <td
                           className="-my-1.5 max-w-[125px] whitespace-nowrap px-4 font-bold text-gray-900"
                           dangerouslySetInnerHTML={{
                             __html: `
-                        <marquee direction="left" loop="">
+                        <marquee direction="left" loop scrollamount="4">
                         ${name}
                         </marquee>
                         `,
@@ -216,7 +254,7 @@ export default function ScoreBoard() {
                       ))}
 
                       <td className="-my-1.5 max-w-[125px] whitespace-nowrap px-4 text-center text-gray-700">
-                        {scores?.reduce((a: number, b: number) => a + b, 0)}
+                        {totalScore(scores)}
                       </td>
                     </tr>
                   ),
@@ -227,24 +265,20 @@ export default function ScoreBoard() {
 
         {showingMessage !== null && (
           <div
-            className={`absolute bottom-16 left-1/2 w-[580px] -translate-x-1/2 rounded-lg border shadow-lg ${showingMessage.positive ? (showingMessage.update && "border-yellow-300") || "border-green-300" : "border-red-300"} ${showingMessage.positive ? (showingMessage.update && "bg-yellow-100") || "bg-green-200" : "bg-red-100"} px-4 py-1.5`}
+            className={`absolute bottom-16 left-1/2 w-max max-w-[calc(100dvw_-_96px)] -translate-x-1/2 whitespace-pre-wrap text-wrap rounded-lg border shadow-lg ${showingMessage.update ? "border-yellow-300" : (showingMessage.positive && "border-green-300") || "border-red-300"} ${showingMessage.update ? "bg-yellow-100" : (showingMessage.positive && "bg-green-200") || "bg-red-100"} px-4 py-1.5`}
             ref={messageRef}
           >
-            <span className="line-clamp-1 text-center text-2xl">
+            <span className="text-center text-xl md:text-2xl">
               Team <span className="font-medium">{showingMessage.team}</span>{" "}
               got{" "}
               <span
-                className={`font-medium ${showingMessage.positive ? (showingMessage.update && "text-yellow-600") || "text-green-600" : "text-red-600"} `}
+                className={`font-medium ${showingMessage.positive ? "text-green-600" : "text-red-600"} `}
               >
                 {showingMessage.points}
               </span>{" "}
               points with a{" "}
               {showingMessage.positive ? (
-                <span
-                  className={`font-medium ${(showingMessage.update && "text-yellow-600") || "text-green-700"}`}
-                >
-                  Right Answer
-                </span>
+                <span className="font-medium text-green-700">Right Answer</span>
               ) : (
                 <span className="font-medium text-red-600">Wrong Answer</span>
               )}
